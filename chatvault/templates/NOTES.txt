@@ -1,0 +1,21 @@
+ChatVault has been deployed!
+
+1. Get the application URL:
+{{- if .Values.ingress.enabled }}
+   Add to /etc/hosts: 127.0.0.1 {{ .Values.ingress.host }}
+   Then visit: http://{{ .Values.ingress.host }}/health
+{{- else }}
+   kubectl port-forward svc/{{ include "chatvault.fullname" . }}-app 8080:{{ .Values.app.servicePort }} -n {{ .Release.Namespace }}
+   Then visit: http://localhost:8080/health
+{{- end }}
+
+2. API endpoints:
+   - Health: GET /health
+   - Register: POST /api/v1/auth/register
+   - Login: POST /api/v1/auth/login
+   - Conversations: GET/POST /api/v1/conversations (requires Bearer token)
+
+3. Override secrets for production:
+   helm upgrade {{ .Release.Name }} ./chatvault -n {{ .Release.Namespace }} \
+     --set postgresPassword=YOUR_SECURE_PASSWORD \
+     --set jwtPrivateKey=YOUR_JWT_SECRET

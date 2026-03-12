@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chatvault.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chatvault.labels" . | nindent 4 }}
+data:
+  postgres-db: {{ .Values.postgres.db | quote }}
+  app-port: {{ .Values.app.port | quote }}

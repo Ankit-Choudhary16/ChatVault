@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chatvault-ingress
+  namespace: chatvault
+  labels:
+    app: chatvault
+  annotations:
+    # For nginx ingress controller (kind default)
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: chatvault.local # For local testing, use /etc/hosts to map this to  echo "127.0.0.1 chatvault.local" | sudo tee -a /etc/hosts
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: chatvault-app
+                port:
+                  number: 80
+  

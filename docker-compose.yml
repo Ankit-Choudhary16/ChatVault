@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chatvault-postgres
+    environment:
+      POSTGRES_USER: ankit
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: chatvault
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ankit -d chatvault"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chatvault-app
+    environment:
+      DATABASE_URL: "postgres://ankit:1234@postgres:5432/chatvault?sslmode=disable"
+      PORT: "8080"
+      PRIVATE_KEY: "${PRIVATE_KEY:-5f1fe7e915314bad462f0ab0d24dd1adbb6c6fa958a948fab68228c0927acd8f}"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

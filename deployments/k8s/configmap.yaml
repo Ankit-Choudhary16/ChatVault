@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chatvault-config
+  namespace: chatvault
+  labels:
+    app: chatvault
+data:
+  postgres-db: chatvault
+  app-port: "8080"

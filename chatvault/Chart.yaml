@@ -1,0 +1,12 @@
+apiVersion: v2
+name: chatvault
+description: ChatVault - Chat history storage API
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - chat
+  - api
+  - gin
+maintainers:
+  - name: ChatVault

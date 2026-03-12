@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatvault-app
+  namespace: chatvault
+  labels:
+    app: chatvault
+    component: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: chatvault
+      component: api
+  template:
+    metadata:
+      labels:
+        app: chatvault
+        component: api
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - "until pg_isready -h postgres -U ankit -d chatvault; do echo waiting for postgres; sleep 2; done"
+      containers:
+        - name: chatvault
+          image: chatvault:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chatvault-secrets
+                  key: database-url
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: chatvault-config
+                  key: app-port
+            - name: PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: chatvault-secrets
+                  key: private-key
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 30
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chatvault-app
+  namespace: chatvault
+  labels:
+    app: chatvault
+    component: api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: chatvault
+    component: api

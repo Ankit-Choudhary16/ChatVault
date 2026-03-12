@@ -1,0 +1,25 @@
+# Environment variables (contains secrets)
+.env
+.env.local
+.env.*.local
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+
+
+# Build output
+/bin/
+/dist/
+/build/
+
+
+# Docker
+.docker/
+
+# Kubernetes (local/generated)
+*.kubeconfig

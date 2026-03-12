@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chatvault.fullname" . }}-app
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chatvault.labels" . | nindent 4 }}
+    component: api
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      {{- include "chatvault.selectorLabels" . | nindent 6 }}
+      component: api
+  template:
+    metadata:
+      labels:
+        {{- include "chatvault.selectorLabels" . | nindent 8 }}
+        component: api
+    spec:
+      {{- if .Values.postgres.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: {{ .Values.postgres.waitImage }}
+          command:
+            - sh
+            - -c
+            - "until pg_isready -h {{ include "chatvault.fullname" . }}-postgres -U {{ .Values.postgresUser }} -d {{ .Values.postgres.db }}; do echo waiting for postgres; sleep 2; done"
+      {{- end }}
+      containers:
+        - name: chatvault
+          image: {{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.port }}
+              name: http
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "chatvault.fullname" . }}-secrets
+                  key: database-url
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "chatvault.fullname" . }}-config
+                  key: app-port
+            - name: PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "chatvault.fullname" . }}-secrets
+                  key: private-key
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.app.port }}
+            initialDelaySeconds: {{ .Values.app.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.app.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.app.port }}
+            initialDelaySeconds: {{ .Values.app.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.readinessProbe.periodSeconds }}
+          {{- with .Values.app.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "chatvault.fullname" . }}-app
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chatvault.labels" . | nindent 4 }}
+    component: api
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.app.servicePort }}
+      targetPort: {{ .Values.app.port }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "chatvault.selectorLabels" . | nindent 4 }}
+    component: api

@@ -1,0 +1,49 @@
+# ChatVault Helm Chart Values
+# Override secrets via --set or -f secrets.yaml. Do NOT commit real secrets.
+
+# App configuration
+app:
+  replicas: 3
+  image:
+    repository: chatvault
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 8080
+  servicePort: 8080
+  livenessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  resources: {}
+
+# Postgres configuration
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  db: chatvault
+  waitImage: postgres:16-alpine
+
+# Secrets - override in production
+postgresUser: ankit
+postgresPassword: changeme
+jwtPrivateKey: changeme-jwt-secret-key
+
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  host: chatvault.local
+  annotations: {}
+  # tls:
+  #   - secretName: chatvault-tls
+  #     hosts:
+  #       - chatvault.local
+
+# PVC for Postgres
+persistence:
+  enabled: true
+  size: 5Gi
+  # storageClassName: standard
