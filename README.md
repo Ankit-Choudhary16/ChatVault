@@ -26,7 +26,7 @@ docker build -t chatvault:latest .
 #run it 
 docker compose up 
 
-
+```
 
 
 
