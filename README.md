@@ -20,6 +20,7 @@ curl http://localhost:8080/health
 ### To run it on docker 
 
 ```bash
+# make sure to name the docker image correctly and replace it at all places 
 # build the image 
 docker build -t chatvault:latest .
 
