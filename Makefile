@@ -31,7 +31,7 @@ delete-cluster:
 	kind delete cluster --name chatvault-cluster
 
 load-image:
-	kind load docker-image chatvault:latest --name chatvault-cluster
+	kind load docker-image chatvaultcopy2-app:latest --name chatvault-cluster
 
 ingress-controller:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml

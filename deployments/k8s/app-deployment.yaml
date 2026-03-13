@@ -27,7 +27,7 @@ spec:
             - "until pg_isready -h postgres -U ankit -d chatvault; do echo waiting for postgres; sleep 2; done"
       containers:
         - name: chatvault
-          image: chatvault:latest
+          image: chatvaultcopy2-app:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
